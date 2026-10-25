@@ -177,8 +177,10 @@ if st.button("Screen karo"):
             show[col] = show[col].map({True: "✅", False: "❌"})
         st.dataframe(show, use_container_width=True, hide_index=True)
         top = out[(out["Score /8"] >= 7) & out["1 Trend (जरूरी)"]]["Stock"]
-        st.success("Top picks (trend ✅ + 7/8 ya zyada): " + ", ".join(top)) if len(top) \
-            else st.info("Aaj koi stock 7/8 score aur trend ✅ pe nahi hai.")
+        if len(top):
+            st.success("Top picks (trend ✅ + 7/8 ya zyada): " + ", ".join(top))
+        else:
+            st.info("Aaj koi stock 7/8 score aur trend ✅ pe nahi hai.")
     else:
         st.error("Koi data nahi mila. Thodi der baad dobara try karo.")
 
