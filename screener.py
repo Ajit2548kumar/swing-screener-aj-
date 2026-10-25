@@ -121,11 +121,14 @@ def analyse(sym, data):
     # 7. Risk-Reward >= 1:2
     stop = min(sl) * 0.995 if sl else l.iloc[-10:].min() * 0.995
     risk = price - stop
-    prior_high = h.iloc[-60:].max()
-    target = prior_high if prior_high > price + 2 * risk else price + 2 * risk
-    rr = (target - price) / risk if risk > 0 else 0
+    overhead = [x for x in swing_points(h, "high") if x > price]
+    if overhead:
+        target = min(overhead)          # sabse paas ka asli resistance
+        rr = (target - price) / risk if risk > 0 else 0
+    else:
+        target = price + 2 * risk       # upar koi resistance nahi
+        rr = 2.0 if risk > 0 else 0
     rr_ok = rr >= 2
-
     # 8. Stop loss + position size + gap risk
     gap = (o / c.shift(1) - 1).abs().iloc[-20:].max() * 100
     qty = int((capital * risk_pct / 100) // risk) if risk > 0 else 0
