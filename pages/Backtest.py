@@ -84,10 +84,22 @@ def prepare(df):
     sl_min = pd.concat([sl_last, sl_prev], axis=1).min(axis=1)
     stop = (sl_min * 0.995).fillna(l.rolling(10).min() * 0.995)
     risk = c - stop
-    prior_high = h.rolling(60).max()
-    tgt = pd.Series(np.where(prior_high > c + 2 * risk, prior_high, c + 2 * risk), index=c.index)
-    rr = (tgt - c) / risk.where(risk > 0)
-    rr_ok = rr >= 2
+           # sabse paas ka asli resistance = c se upar ka sabse chhota confirmed swing high (pichle ~250 din)
+    ci = df.index.get_indexer(kh.index)
+    pv = kh.values
+    if len(pv):
+        tt = np.arange(len(df))[:, None]
+        valid = ((ci[None, :] <= tt) & (ci[None, :] > tt - 250)
+                 & (pv[None, :] > c.values[:, None]))
+        nearest = np.where(valid, pv[None, :], np.inf).min(axis=1)
+    else:
+        nearest = np.full(len(df), np.inf)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        rr = pd.Series(np.where(np.isfinite(nearest), (nearest - c.values) / risk.values, 2.0),
+                       index=c.index)
+    rr_ok = (risk > 0) & (rr >= 2)
+           
+           
 
     gap = (o / c.shift(1) - 1).abs().rolling(20).max() * 100
     sl_ok = (risk > 0) & (risk / c <= 0.08) & (gap < 4)
