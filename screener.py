@@ -46,6 +46,9 @@ else:
 capital = st.number_input("Total capital (₹)", value=500000, step=10000)
 risk_pct = st.number_input("Per trade risk (%)", value=1.0, step=0.25)
 min_score = st.slider("Sirf wahi stocks dikhao jinka score kam-se-kam ...", 0, 8, 6)
+if st.button("🔄 Taaza data lao (cache saaf)"):
+    st.cache_data.clear()
+    st.success("Cache saaf ho gaya. Ab 'Screen karo' dabao.")
 swing_n = 5       # swing high/low window
 lookback = 20     # resistance = pichle 20 din ka high
 vol_mult = 1.5    # breakout volume >= 1.5x 20-din average
