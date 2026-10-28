@@ -102,7 +102,7 @@ def prepare(df):
            
 
     gap = (o / c.shift(1) - 1).abs().rolling(20).max() * 100
-    sl_ok = (risk > 0) & (risk / c <= 0.08) & (gap < 4)
+        sl_ok = (risk > 0) & (risk / c <= 0.08) & (gap < 4)
 
     checks = [trend, hhhl, breakout, vol_ok, rsi_ok, retest, rr_ok, sl_ok]
     score = sum(x.fillna(False).astype(int) for x in checks)
@@ -120,7 +120,7 @@ def simulate(sym, df, trend, score, stop, min_score, test_start, max_hold, tgt_r
         if t < free or t + 1 >= n or np.isnan(stp[t]):
             continue
         entry, s = o[t + 1], stp[t]
-        if not entry > s:
+                if not entry > s:
             continue
         risk = entry - s
         target = entry + tgt_r * risk
