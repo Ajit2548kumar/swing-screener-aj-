@@ -158,7 +158,7 @@ universe = st.selectbox("Universe", list(LISTS.keys()), index=0)
 if LISTS[universe] is None:
     custom = st.text_area("Symbols (comma se alag, bina .NS ke)", "RELIANCE, TCS, INFY, HDFCBANK, ICICIBANK, SBIN")
 years = st.selectbox("Kitne saal ka test?", [1, 2], index=1)
-min_score = st.slider("Trade tab lo jab score kam-se-kam ...", 4, 8, 6)
+min_score = st.slider("Trade tab lo jab score kam-se-kam ...", 1, 8, 6)
 tgt_r = st.number_input("Target (R mein, 2 = 1:2)", value=2.0, step=0.5)
 max_hold = st.number_input("Zyada se zyada kitne din hold", value=20, step=5)
 cost_pct = st.number_input("Kharcha + slippage (%, round trip)", value=0.2, step=0.1)
