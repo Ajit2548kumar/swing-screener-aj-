@@ -132,7 +132,7 @@ def analyse(sym, data):
     # 8. Stop loss + position size + gap risk
     gap = (o / c.shift(1) - 1).abs().iloc[-20:].max() * 100
     qty = int((capital * risk_pct / 100) // risk) if risk > 0 else 0
-    sl_ok = 0 < risk / price <= 0.08 and gap < 4 and qty > 0
+    sl_ok = 0.02 <= risk / price <= 0.08 and gap < 4 and qty > 0
 
     checks = [trend_ok, hhhl, breakout, vol_ok, rsi_ok, retest, rr_ok, sl_ok]
     return {
