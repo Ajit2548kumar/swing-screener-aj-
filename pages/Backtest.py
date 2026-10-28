@@ -84,7 +84,7 @@ def prepare(df):
     sl_min = pd.concat([sl_last, sl_prev], axis=1).min(axis=1)
     stop = (sl_min * 0.995).fillna(l.rolling(10).min() * 0.995)
     risk = c - stop
-           # sabse paas ka asli resistance = c se upar ka sabse chhota confirmed swing high (pichle ~250 din)
+    # sabse paas ka asli resistance = c se upar ka sabse chhota confirmed swing high (pichle ~250 din)
     ci = df.index.get_indexer(kh.index)
     pv = kh.values
     if len(pv):
@@ -98,8 +98,6 @@ def prepare(df):
         rr = pd.Series(np.where(np.isfinite(nearest), (nearest - c.values) / risk.values, 2.0),
                        index=c.index)
     rr_ok = (risk > 0) & (rr >= 2)
-           
-           
 
     gap = (o / c.shift(1) - 1).abs().rolling(20).max() * 100
     sl_ok = (risk / c >= 0.02) & (risk / c <= 0.08) & (gap < 4)
@@ -109,8 +107,9 @@ def prepare(df):
     return trend.fillna(False), score, stop
 
 
-def simulate(sym, df, trend, score, stop, min_score, test_start, max_hold, tgt_r, cost_pct):
+def simulate(sym, df, trend, score, stop, min_score, test_start, max_hold, tgt_r, cost_pct, trailing=False):
     o, h, l, c = (df[k].values for k in ["Open", "High", "Low", "Close"])
+    e20 = df["Close"].ewm(span=20, adjust=False).mean().values
     dates = df.index
     n = len(df)
     sig = (trend & (score >= min_score)).values & (dates >= test_start)
@@ -131,8 +130,13 @@ def simulate(sym, df, trend, score, stop, min_score, test_start, max_hold, tgt_r
                 ex_i, ex_px, why = d, o[d], "Stop (gap)"
             elif l[d] <= s:
                 ex_i, ex_px, why = d, s, "Stop"
-            elif h[d] >= target:
+            elif (not trailing) and h[d] >= target:
                 ex_i, ex_px, why = d, max(o[d], target), "Target"
+            elif trailing and c[d] < e20[d]:
+                if d + 1 < n:
+                    ex_i, ex_px, why = d + 1, o[d + 1], "EMA20 exit"
+                else:
+                    ex_i, ex_px, why = d, c[d], "EMA20 exit"
             if ex_i is not None:
                 break
         if ex_i is None:
@@ -158,6 +162,8 @@ min_score = st.slider("Trade tab lo jab score kam-se-kam ...", 4, 8, 6)
 tgt_r = st.number_input("Target (R mein, 2 = 1:2)", value=2.0, step=0.5)
 max_hold = st.number_input("Zyada se zyada kitne din hold", value=20, step=5)
 cost_pct = st.number_input("Kharcha + slippage (%, round trip)", value=0.2, step=0.1)
+exit_mode = st.selectbox("Exit ka tareeka", ["Fixed target (R mein)", "Trailing: close EMA20 ke neeche"], index=0)
+trailing = exit_mode.startswith("Trailing")
 
 if st.button("Backtest chalao"):
     syms = [x.strip().upper() for x in custom.split(",") if x.strip()] if LISTS[universe] is None \
@@ -180,7 +186,7 @@ if st.button("Backtest chalao"):
                     start = df.index[-1] - pd.Timedelta(days=365 * years)
                     trend, score, stop = prepare(df)
                     trades += simulate(sym, df, trend, score, stop, min_score, start,
-                                       int(max_hold), float(tgt_r), float(cost_pct))
+                                       int(max_hold), float(tgt_r), float(cost_pct), trailing)
                     ok += 1
                 except Exception:
                     bad += 1
